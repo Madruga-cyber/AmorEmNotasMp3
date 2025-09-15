@@ -17,6 +17,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <!-- Estilos Personalizados e Paletas de Cores -->
     <style>
@@ -314,7 +315,7 @@
     <div id="admin-dashboard" class="hidden">
         <div class="flex h-screen bg-gray-100">
             <!-- Sidebar -->
-            <aside class="w-64 bg-gray-800 text-white flex-shrink-0 hidden md:block">
+            <aside id="admin-sidebar" class="w-64 bg-gray-800 text-white flex-shrink-0 fixed md:relative h-full z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
                 <div class="p-6 text-2xl font-bold border-b border-gray-700">Amor em Notas</div>
                 <nav class="mt-6">
                     <a href="#" data-target="admin-metricas" class="admin-nav-link block py-3 px-6 bg-gray-700">Métricas</a>
@@ -325,125 +326,134 @@
                     <a href="#" id="back-to-site" class="block py-3 px-6 hover:bg-gray-700 mt-8 border-t border-gray-700">Sair / Voltar ao Site</a>
                 </nav>
             </aside>
+            <div id="admin-sidebar-overlay" class="fixed inset-0 bg-black opacity-50 z-20 hidden md:hidden"></div>
 
             <!-- Main Content -->
-            <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
-                <!-- Seção de Métricas -->
-                <div id="admin-metricas" class="admin-panel">
-                    <h1 class="text-3xl font-bold mb-8">Métricas</h1>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="bg-white p-6 rounded-lg shadow">
-                            <h3 class="text-gray-500">Total de Músicas</h3>
-                            <p id="metric-musicas" class="text-3xl font-bold">0</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow">
-                            <h3 class="text-gray-500">Planos Ativos</h3>
-                            <p id="metric-planos" class="text-3xl font-bold">0</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow">
-                            <h3 class="text-gray-500">Depoimentos Publicados</h3>
-                            <p id="metric-depoimentos" class="text-3xl font-bold">0</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow">
-                            <h3 class="text-gray-500">Cliques no WhatsApp</h3>
-                            <p id="metric-whatsapp" class="text-3xl font-bold">0</p>
-                        </div>
-                    </div>
+            <main class="flex-1 overflow-y-auto">
+                <div class="md:hidden p-4 bg-gray-800 text-white flex justify-between items-center">
+                    <span class="text-xl font-bold">Admin</span>
+                    <button id="admin-mobile-menu-btn">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
                 </div>
-
-                <!-- Seção de Músicas -->
-                <div id="admin-musicas" class="admin-panel hidden">
-                    <div class="flex justify-between items-center mb-8">
-                        <h1 class="text-3xl font-bold">Gerenciar Músicas</h1>
-                        <button id="add-musica-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Nova Música</button>
-                    </div>
-                    <div class="bg-white rounded-lg shadow overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead><tr class="border-b"><th class="p-4">Título</th><th class="p-4">Evento</th><th class="p-4">Áudio</th><th class="p-4">Ações</th></tr></thead>
-                            <tbody id="admin-musicas-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Seção de Planos -->
-                <div id="admin-planos" class="admin-panel hidden">
-                     <div class="flex justify-between items-center mb-8">
-                        <h1 class="text-3xl font-bold">Gerenciar Planos</h1>
-                        <button id="add-plano-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Novo Plano</button>
-                    </div>
-                    <div class="bg-white rounded-lg shadow overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead><tr class="border-b"><th class="p-4">Nome</th><th class="p-4">Preço</th><th class="p-4">Destaque</th><th class="p-4">Ativo</th><th class="p-4">Ações</th></tr></thead>
-                            <tbody id="admin-planos-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Seção de Depoimentos -->
-                 <div id="admin-depoimentos" class="admin-panel hidden">
-                     <div class="flex justify-between items-center mb-8">
-                        <h1 class="text-3xl font-bold">Gerenciar Depoimentos</h1>
-                        <button id="add-depoimento-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Novo Depoimento</button>
-                    </div>
-                    <div class="bg-white rounded-lg shadow overflow-x-auto">
-                        <table class="w-full text-left">
-                           <thead><tr class="border-b"><th class="p-4">Cliente</th><th class="p-4">Vídeo</th><th class="p-4">Status</th><th class="p-4">Ações</th></tr></thead>
-                            <tbody id="admin-depoimentos-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Seção de Personalização -->
-                <div id="admin-personalizacao" class="admin-panel hidden">
-                    <h1 class="text-3xl font-bold mb-8">Personalização da Página</h1>
-                    <div class="bg-white p-6 rounded-lg shadow space-y-6">
-                        <div>
-                            <label for="palette-selector" class="block font-medium mb-2">Paleta de Cores</label>
-                            <select id="palette-selector" class="w-full p-2 border rounded">
-                                <option value="default">Rosa Padrão</option>
-                                <option value="palette-blue">Azul Romântico</option>
-                                <option value="palette-red">Vermelho Paixão</option>
-                                <option value="palette-sky-blue">Azul Céu</option>
-                                <option value="palette-green">Verde Esperança</option>
-                                <option value="palette-dark">Dark Moderno</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold mb-4 border-b pb-2">Gerenciamento de Mídia</h3>
-                            <div class="flex items-center space-x-4">
-                                <span>Método de Envio:</span>
-                                <label class="flex items-center"><input type="radio" name="upload-method" value="url" checked class="mr-2"> Link (URL)</label>
-                                <label class="flex items-center"><input type="radio" name="upload-method" value="firebase" class="mr-2"> Upload (Firebase)</label>
+                <div class="p-4 sm:p-8">
+                    <!-- Seção de Métricas -->
+                    <div id="admin-metricas" class="admin-panel">
+                        <h1 class="text-3xl font-bold mb-8">Métricas</h1>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-gray-500">Total de Músicas</h3>
+                                <p id="metric-musicas" class="text-3xl font-bold">0</p>
                             </div>
-                            <p class="text-sm text-gray-500 mt-2">
-                                Escolha "Link" para colar URLs de mídias já hospedadas (mais rápido). Escolha "Upload" para enviar arquivos do seu computador (requer configuração correta do Firebase).
-                            </p>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block font-medium">Logo</label>
-                            <div id="logo-url-group">
-                                <input type="text" id="logo-upload-url" placeholder="Cole a URL da imagem do logo" class="w-full p-2 border rounded-md">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-gray-500">Planos Ativos</h3>
+                                <p id="metric-planos" class="text-3xl font-bold">0</p>
                             </div>
-                            <div id="logo-file-group" class="hidden">
-                                <input type="file" id="logo-upload-file" accept="image/*" class="w-full p-2 border rounded-md file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-gray-500">Depoimentos Publicados</h3>
+                                <p id="metric-depoimentos" class="text-3xl font-bold">0</p>
                             </div>
-                            <div class="flex items-center space-x-4">
-                                <button id="remove-logo-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 text-sm font-semibold">Remover</button>
-                                <img id="logo-preview" class="max-h-16 hidden" alt="Prévia do logo">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-gray-500">Cliques no WhatsApp</h3>
+                                <p id="metric-whatsapp" class="text-3xl font-bold">0</p>
                             </div>
                         </div>
-                        
-                         <div class="space-y-2">
-                            <label class="block font-medium">Mídia de Fundo (Hero)</label>
-                            <div id="hero-media-url-group">
-                                <input type="text" id="hero-media-upload-url" placeholder="Cole a URL da imagem ou vídeo" class="w-full p-2 border rounded-md">
+                    </div>
+
+                    <!-- Seção de Músicas -->
+                    <div id="admin-musicas" class="admin-panel hidden">
+                        <div class="flex justify-between items-center mb-8">
+                            <h1 class="text-3xl font-bold">Gerenciar Músicas</h1>
+                            <button id="add-musica-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Nova Música</button>
+                        </div>
+                        <div class="bg-white rounded-lg shadow overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead><tr class="border-b"><th class="p-4">Título</th><th class="p-4">Evento</th><th class="p-4">Áudio</th><th class="p-4">Ações</th></tr></thead>
+                                <tbody id="admin-musicas-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Seção de Planos -->
+                    <div id="admin-planos" class="admin-panel hidden">
+                         <div class="flex justify-between items-center mb-8">
+                            <h1 class="text-3xl font-bold">Gerenciar Planos</h1>
+                            <button id="add-plano-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Novo Plano</button>
+                        </div>
+                        <div class="bg-white rounded-lg shadow overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead><tr class="border-b"><th class="p-4">Nome</th><th class="p-4">Preço</th><th class="p-4">Destaque</th><th class="p-4">Ativo</th><th class="p-4">Ações</th></tr></thead>
+                                <tbody id="admin-planos-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Depoimentos -->
+                     <div id="admin-depoimentos" class="admin-panel hidden">
+                         <div class="flex justify-between items-center mb-8">
+                            <h1 class="text-3xl font-bold">Gerenciar Depoimentos</h1>
+                            <button id="add-depoimento-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Novo Depoimento</button>
+                        </div>
+                        <div class="bg-white rounded-lg shadow overflow-x-auto">
+                            <table class="w-full text-left">
+                               <thead><tr class="border-b"><th class="p-4">Cliente</th><th class="p-4">Vídeo</th><th class="p-4">Status</th><th class="p-4">Ações</th></tr></thead>
+                                <tbody id="admin-depoimentos-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Personalização -->
+                    <div id="admin-personalizacao" class="admin-panel hidden">
+                        <h1 class="text-3xl font-bold mb-8">Personalização da Página</h1>
+                        <div class="bg-white p-6 rounded-lg shadow space-y-6">
+                            <div>
+                                <label for="palette-selector" class="block font-medium mb-2">Paleta de Cores</label>
+                                <select id="palette-selector" class="w-full p-2 border rounded">
+                                    <option value="default">Rosa Padrão</option>
+                                    <option value="palette-blue">Azul Romântico</option>
+                                    <option value="palette-red">Vermelho Paixão</option>
+                                    <option value="palette-sky-blue">Azul Céu</option>
+                                    <option value="palette-green">Verde Esperança</option>
+                                    <option value="palette-dark">Dark Moderno</option>
+                                </select>
                             </div>
-                            <div id="hero-media-file-group" class="hidden">
-                                <input type="file" id="hero-media-upload-file" accept="image/*,video/*" class="w-full p-2 border rounded-md file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+
+                            <div>
+                                <h3 class="text-lg font-semibold mb-4 border-b pb-2">Gerenciamento de Mídia</h3>
+                                <div class="flex items-center space-x-4">
+                                    <span>Método de Envio:</span>
+                                    <label class="flex items-center"><input type="radio" name="upload-method" value="url" checked class="mr-2"> Link (URL)</label>
+                                    <label class="flex items-center"><input type="radio" name="upload-method" value="firebase" class="mr-2"> Upload (Firebase)</label>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    Escolha "Link" para colar URLs de mídias já hospedadas (mais rápido). Escolha "Upload" para enviar arquivos do seu computador (requer configuração correta do Firebase).
+                                </p>
                             </div>
-                            <button id="remove-hero-media-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 text-sm font-semibold">Remover Mídia</button>
+
+                            <div class="space-y-2">
+                                <label class="block font-medium">Logo</label>
+                                <div id="logo-url-group">
+                                    <input type="text" id="logo-upload-url" placeholder="Cole a URL da imagem do logo" class="w-full p-2 border rounded-md">
+                                </div>
+                                <div id="logo-file-group" class="hidden">
+                                    <input type="file" id="logo-upload-file" accept="image/*" class="w-full p-2 border rounded-md file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <button id="remove-logo-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 text-sm font-semibold">Remover</button>
+                                    <img id="logo-preview" class="max-h-16 hidden" alt="Prévia do logo">
+                                </div>
+                            </div>
+                            
+                             <div class="space-y-2">
+                                <label class="block font-medium">Mídia de Fundo (Hero)</label>
+                                <div id="hero-media-url-group">
+                                    <input type="text" id="hero-media-upload-url" placeholder="Cole a URL da imagem ou vídeo" class="w-full p-2 border rounded-md">
+                                </div>
+                                <div id="hero-media-file-group" class="hidden">
+                                    <input type="file" id="hero-media-upload-file" accept="image/*,video/*" class="w-full p-2 border rounded-md file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+                                </div>
+                                <button id="remove-hero-media-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 text-sm font-semibold">Remover Mídia</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -529,10 +539,9 @@
     <div id="success-toast" class="fixed bottom-6 right-6 z-[70] bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transform translate-y-4 pointer-events-none">
         Depoimento enviado com sucesso! Obrigado.
     </div>
-
-
+    
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
 
         // ===================================================================
         // ======================= CONFIGURAÇÃO DO FIREBASE ==================
@@ -549,6 +558,7 @@
         
         let auth = null;
         let storage = null;
+        let db = null;
         let isFirebaseConfigured = false;
 
         // Verifica se a configuração do Firebase foi preenchida
@@ -557,6 +567,7 @@
                 firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
                 storage = firebase.storage();
+                db = firebase.firestore();
                 isFirebaseConfigured = true;
                 
                 auth.signInAnonymously().catch((error) => {
@@ -610,73 +621,86 @@
             }, 300);
         };
         
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        if(loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
 
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                sessionStorage.setItem('isLoggedIn', 'true');
-                closeLoginModal();
-                showAdminPanel('admin-metricas');
-            } else {
-                loginError.classList.remove('hidden');
-            }
-        });
-
-        loginModalOverlay.addEventListener('click', closeLoginModal);
+                if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    closeLoginModal();
+                    showAdminPanel('admin-metricas');
+                } else {
+                    loginError.classList.remove('hidden');
+                }
+            });
+        }
+        
+        if(loginModalOverlay) loginModalOverlay.addEventListener('click', closeLoginModal);
 
 
         // ===================================================================
-        // ======================= BANCO DE DADOS (LOCALSTORAGE) =============
+        // ======================= BANCO DE DADOS (FIRESTORE) ================
         // ===================================================================
-        const DB_KEY = 'amorEmNotasDB';
+        let data = {};
 
-        const defaultData = {
-            musicas: [
-                { id: 1, titulo: 'O Nosso Sim', evento: 'Casamento', img: 'https://placehold.co/400x300/FBCFE8/3D1A2C?text=Casamento', audioUrl: null },
-                { id: 5, titulo: 'Caminho de Luz', evento: 'Casamento', img: 'https://placehold.co/400x300/FBCFE8/3D1A2C?text=Amor', audioUrl: null },
-                { id: 2, titulo: '50 Anos de Ouro', evento: 'Aniversário', img: 'https://placehold.co/400x300/FDE68A/4B320A?text=Aniversário', audioUrl: null },
-                { id: 3, titulo: 'Para a Melhor Mãe', evento: 'Homenagem', img: 'https://placehold.co/400x300/A5B4FC/1E234A?text=Homenagem', audioUrl: null },
-                { id: 4, titulo: 'Menino ou Menina?', evento: 'Chá Revelação', img: 'https://placehold.co/400x300/BFDBFE/1E40AF?text=Chá+Revelação', audioUrl: null },
-            ],
-            planos: [
-                { id: 1, nome: 'Essencial', preco: '249.00', parcelas: 3, destaque: false, ativo: true, beneficios: 'Música com voz e violão\nLetra 100% personalizada\nEntrega em MP3 (7 dias)' },
-                { id: 2, nome: 'Premium', preco: '349.00', parcelas: 3, destaque: true, ativo: true, beneficios: 'Tudo do Essencial +\nBacking vocal e percussão\nRevisão da letra inclusa\nEntrega em 5 dias' },
-                { id: 3, nome: 'Deluxe', preco: '499.00', parcelas: 3, destaque: false, ativo: true, beneficios: 'Tudo do Premium +\nInstrumentos adicionais\nLyric video simples\nEntrega prioritária (3 dias)' },
-            ],
-            depoimentos: [
-                { id: 1, cliente: 'Ana & Leo', evento: 'Casamento', texto: 'Foi emocionante ver nossa história em música! Choramos muito. Obrigado Amor em Notas!', status: 'publicado', videoUrl: null },
-                { id: 2, cliente: 'Família Silva', evento: 'Homenagem', texto: 'A homenagem para minha mãe ficou perfeita. Ela amou a surpresa e todos os convidados elogiaram.', status: 'publicado', videoUrl: null },
-                { id: 3, cliente: 'Juliana B.', evento: 'Aniversário', texto: 'A música de 15 anos da minha filha foi o ponto alto da festa. Uma lembrança para a vida toda!', status: 'pendente', videoUrl: null },
-            ],
-            settings: {
-                palette: 'default',
-                logoUrl: 'https://placehold.co/250x60/FDF4FF/D946EF?text=Amor+%E2%99%A5+%E2%99%AB+Notas',
-                heroImageUrl: null,
-                heroVideoUrl: null,
-                uploadMethod: 'url'
+        const saveData = async () => {
+            if (!isFirebaseConfigured) {
+                console.warn("Firebase não configurado. Impossível salvar online.");
+                return;
             }
-        };
-
-        let data;
-
-        const saveData = () => {
             try {
-                localStorage.setItem(DB_KEY, JSON.stringify(data));
-            } catch (e) {
-                console.error("Não foi possível salvar os dados:", e);
-                alert("Ocorreu um erro ao salvar. O armazenamento do navegador pode estar cheio. Tente remover alguns itens ou limpar o cache.");
+                const dbDocRef = db.collection('siteContent').doc('main');
+                await dbDocRef.set(data);
+                console.log("Dados salvos no Firebase com sucesso!");
+            } catch (error) {
+                console.error("Erro ao salvar dados no Firebase:", error);
+                alert("Ocorreu um erro ao salvar suas alterações online. Verifique o console para mais detalhes.");
             }
         };
 
-        const loadData = () => {
-            const savedData = localStorage.getItem(DB_KEY);
-            data = savedData ? JSON.parse(savedData) : defaultData;
-            if (!data.settings) data.settings = defaultData.settings;
-            if (!data.settings.uploadMethod) data.settings.uploadMethod = 'url';
-            if (data.settings.heroVideoUrl === undefined) data.settings.heroVideoUrl = null;
-            data.depoimentos.forEach(d => { if (d.videoUrl === undefined) d.videoUrl = null; });
+        const loadData = async () => {
+             if (!isFirebaseConfigured) {
+                console.warn("Firebase não configurado. Carregando dados padrão.");
+                data = defaultData;
+                applySettings();
+                renderAll();
+                return;
+            }
+            try {
+                const dbDocRef = db.collection('siteContent').doc('main');
+                 // Listener em tempo real
+                dbDocRef.onSnapshot((doc) => {
+                    if (doc.exists) {
+                        console.log("Dados recebidos do Firebase em tempo real.");
+                        data = doc.data();
+                         // Verificações para garantir que a estrutura dos dados está correta
+                        if (!data.settings) data.settings = defaultData.settings;
+                        if (!data.musicas) data.musicas = defaultData.musicas;
+                        if (!data.planos) data.planos = defaultData.planos;
+                        if (!data.depoimentos) data.depoimentos = defaultData.depoimentos;
+                    } else {
+                        console.log("Nenhum documento encontrado. Usando e salvando dados padrão.");
+                        data = defaultData;
+                        saveData(); // Salva os dados padrão pela primeira vez
+                    }
+                    applySettings();
+                    renderAll();
+                }, (error) => {
+                    console.error("Erro ao ouvir dados do Firebase:", error);
+                    alert("Não foi possível conectar ao banco de dados em tempo real. O site pode não estar atualizado.");
+                    data = defaultData;
+                    applySettings();
+                    renderAll();
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar dados do Firebase, usando dados padrão:", error);
+                data = defaultData;
+                applySettings();
+                renderAll();
+            }
         };
         
         // ===================================================================
@@ -741,7 +765,7 @@
         
         const renderPreviewsGrid = () => {
             const gridContainer = document.getElementById('previews-grid');
-            if (!gridContainer) return;
+            if (!gridContainer || !data.musicas) return;
 
             const musicasPorEvento = data.musicas.reduce((acc, musica) => {
                 const evento = musica.evento || 'Sem Categoria';
@@ -794,7 +818,7 @@
 
         const renderPlansGrid = () => {
             const grid = document.getElementById('plans-grid');
-            if(!grid) return;
+            if(!grid || !data.planos) return;
             grid.innerHTML = data.planos.filter(p => p.ativo).map(plano => {
                 const whatsappMessage = `Olá! Tenho interesse no Plano ${plano.nome}.`;
                 const whatsappUrl = `https://wa.me/5567992369526?text=${encodeURIComponent(whatsappMessage)}`;
@@ -821,7 +845,7 @@
 
         const renderTestimonialsGrid = () => {
             const grid = document.getElementById('testimonials-grid');
-            if(!grid) return;
+            if(!grid || !data.depoimentos) return;
             grid.innerHTML = data.depoimentos.filter(d => d.status === 'publicado').map(depoimento => {
                 const videoElement = depoimento.videoUrl
                     ? `<video controls class="w-full h-full object-cover rounded-lg">
@@ -843,7 +867,7 @@
 
         const renderAdminMusicasTable = () => {
             const tableBody = document.getElementById('admin-musicas-table-body');
-            if(!tableBody) return;
+            if(!tableBody || !data.musicas) return;
             tableBody.innerHTML = data.musicas.map(m => `
                 <tr class="border-b">
                     <td class="p-4">${m.titulo}</td>
@@ -855,7 +879,7 @@
 
         const renderAdminPlanosTable = () => {
             const tableBody = document.getElementById('admin-planos-table-body');
-            if(!tableBody) return;
+            if(!tableBody || !data.planos) return;
             tableBody.innerHTML = data.planos.map(p => `
                 <tr class="border-b">
                     <td class="p-4">${p.nome}</td>
@@ -868,7 +892,7 @@
         
         const renderAdminDepoimentosTable = () => {
             const tableBody = document.getElementById('admin-depoimentos-table-body');
-            if(!tableBody) return;
+            if(!tableBody || !data.depoimentos) return;
             tableBody.innerHTML = data.depoimentos.map(d => `
                  <tr class="border-b">
                     <td class="p-4">${d.cliente}</td>
@@ -880,7 +904,7 @@
 
         const updateMetrics = () => {
             const metricMusicas = document.getElementById('metric-musicas');
-            if (!metricMusicas) return;
+            if (!metricMusicas || !data.musicas) return;
             metricMusicas.textContent = data.musicas.length;
             document.getElementById('metric-planos').textContent = data.planos.filter(p => p.ativo).length;
             document.getElementById('metric-depoimentos').textContent = data.depoimentos.filter(d => d.status === 'publicado').length;
@@ -929,9 +953,9 @@
             }, 300);
         };
         
-        modalCloseBtn.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', closeModal);
-        modalBody.addEventListener('submit', async (e) => {
+        if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+        if(modalOverlay) modalOverlay.addEventListener('click', closeModal);
+        if(modalBody) modalBody.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (onSaveCallback) {
                 const form = e.target;
@@ -1010,8 +1034,7 @@
                     audioUrl: audioUrl
                 };
                 data.musicas.push(newMusica);
-                saveData();
-                renderAll();
+                await saveData();
             });
         });
 
@@ -1039,8 +1062,7 @@
                     beneficios: formData.get('beneficios'),
                 };
                 data.planos.push(newPlano);
-                saveData();
-                renderAll();
+                await saveData();
             });
         });
         
@@ -1081,13 +1103,12 @@
                     videoUrl: videoUrl
                 };
                 data.depoimentos.push(newDepoimento);
-                saveData();
-                renderAll();
+                await saveData();
             });
         });
 
         // --- LÓGICA DE EDIÇÃO E REMOÇÃO (DELEGAÇÃO DE EVENTOS) ---
-        document.getElementById('admin-dashboard').addEventListener('click', (e) => {
+        document.getElementById('admin-dashboard').addEventListener('click', async (e) => {
             const target = e.target;
             const id = parseInt(target.dataset.id);
             const type = target.dataset.type;
@@ -1095,8 +1116,7 @@
             if (target.classList.contains('delete-btn')) {
                 if (confirm('Tem certeza que deseja remover este item?')) {
                     data[type + 's'] = data[type + 's'].filter(item => item.id !== id);
-                    saveData();
-                    renderAll();
+                    await saveData();
                 }
             }
             
@@ -1145,8 +1165,7 @@
                             item.audioUrl = formData.get('audio-url') || null;
                         }
                         
-                        saveData();
-                        renderAll();
+                        await saveData();
                     });
                 } else if (type === 'plano') {
                     const item = data.planos.find(p => p.id === id);
@@ -1167,8 +1186,7 @@
                         item.beneficios = formData.get('beneficios');
                         item.destaque = formData.get('destaque') === 'on';
                         item.ativo = formData.get('ativo') === 'on';
-                        saveData();
-                        renderAll();
+                        await saveData();
                     });
                 } else if (type === 'depoimento') {
                     const item = data.depoimentos.find(d => d.id === id);
@@ -1207,8 +1225,7 @@
                             item.videoUrl = formData.get('video-url') || null;
                         }
                         
-                        saveData();
-                        renderAll();
+                        await saveData();
                     });
                 }
             }
@@ -1223,6 +1240,9 @@
         const adminPanels = document.querySelectorAll('.admin-panel');
         const adminGearButton = document.getElementById('admin-gear-button');
         const whatsappFloatingButton = document.querySelector('.whatsapp-link.fixed');
+        const adminMobileMenuBtn = document.getElementById('admin-mobile-menu-btn');
+        const adminSidebar = document.getElementById('admin-sidebar');
+        const adminSidebarOverlay = document.getElementById('admin-sidebar-overlay');
 
         const showAdminPanel = (targetId) => {
             landingPage.classList.add('hidden');
@@ -1239,6 +1259,8 @@
                 panel.classList.add('hidden');
                 if (panel.id === targetId) panel.classList.remove('hidden');
             });
+            adminSidebar.classList.add('-translate-x-full');
+            adminSidebarOverlay.classList.add('hidden');
         };
 
         const showLandingPage = () => {
@@ -1250,7 +1272,7 @@
             window.location.hash = '';
         };
         
-        adminGearButton.addEventListener('click', () => {
+        if(adminGearButton) adminGearButton.addEventListener('click', () => {
              if (sessionStorage.getItem('isLoggedIn') === 'true') {
                  showAdminPanel('admin-metricas');
              } else {
@@ -1258,7 +1280,18 @@
              }
         });
 
-        document.getElementById('back-to-site').addEventListener('click', (e) => { e.preventDefault(); showLandingPage(); });
+        if(adminMobileMenuBtn) adminMobileMenuBtn.addEventListener('click', () => {
+            adminSidebar.classList.remove('-translate-x-full');
+            adminSidebarOverlay.classList.remove('hidden');
+        });
+
+        const closeAdminSidebar = () => {
+             adminSidebar.classList.add('-translate-x-full');
+             adminSidebarOverlay.classList.add('hidden');
+        }
+
+        if(adminSidebarOverlay) adminSidebarOverlay.addEventListener('click', closeAdminSidebar);
+        if(document.getElementById('back-to-site')) document.getElementById('back-to-site').addEventListener('click', (e) => { e.preventDefault(); showLandingPage(); });
         adminNavLinks.forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(link.dataset.target); }); });
 
 
@@ -1266,6 +1299,8 @@
         // ================== INICIALIZAÇÃO E PERSONALIZAÇÃO ================
         // ===================================================================
         const applySettings = () => {
+            if(!data || !data.settings) return;
+
             document.body.className = "bg-gray-50 " + (data.settings.palette || 'default');
             document.getElementById('palette-selector').value = data.settings.palette || 'default';
             const logoPreview = document.getElementById('logo-preview');
@@ -1289,7 +1324,6 @@
             const heroOverlay = document.getElementById('hero-overlay');
             const heroHeadline = document.getElementById('hero-headline');
             const heroSubheadline = document.getElementById('hero-subheadline');
-            const heroButtons = heroSection.querySelectorAll('a');
             const heroTrustBadges = heroSection.querySelectorAll('.gap-2 > span');
 
             // Reset styles
@@ -1337,26 +1371,23 @@
         });
 
         const paletteSelector = document.getElementById('palette-selector');
-        paletteSelector.addEventListener('change', (e) => { 
+        paletteSelector.addEventListener('change', async (e) => { 
             data.settings.palette = e.target.value;
-            saveData();
-            applySettings();
+            await saveData();
         });
 
         const logoUploadUrlInput = document.getElementById('logo-upload-url');
         const removeLogoBtn = document.getElementById('remove-logo-btn');
-        logoUploadUrlInput.addEventListener('input', (e) => {
+        logoUploadUrlInput.addEventListener('input', async (e) => {
             const imageUrl = e.target.value;
             data.settings.logoUrl = imageUrl;
-            saveData();
-            applySettings();
+            await saveData();
         });
-        removeLogoBtn.addEventListener('click', () => {
+        removeLogoBtn.addEventListener('click', async () => {
             data.settings.logoUrl = null;
             logoUploadUrlInput.value = '';
             document.getElementById('logo-upload-file').value = '';
-            saveData();
-            applySettings();
+            await saveData();
         });
 
         const heroMediaUploadUrlInput = document.getElementById('hero-media-upload-url');
@@ -1367,7 +1398,7 @@
             return videoExtensions.some(ext => url.toLowerCase().includes(ext));
         };
 
-        heroMediaUploadUrlInput.addEventListener('input', e => {
+        heroMediaUploadUrlInput.addEventListener('input', async e => {
             const mediaUrl = e.target.value;
             if (isVideoUrl(mediaUrl)) {
                 data.settings.heroVideoUrl = mediaUrl;
@@ -1376,17 +1407,15 @@
                 data.settings.heroImageUrl = mediaUrl;
                 data.settings.heroVideoUrl = null;
             }
-            saveData();
-            applySettings();
+            await saveData();
         });
 
-        removeHeroMediaBtn.addEventListener('click', () => {
+        removeHeroMediaBtn.addEventListener('click', async () => {
             data.settings.heroImageUrl = null;
             data.settings.heroVideoUrl = null;
             heroMediaUploadUrlInput.value = '';
             heroMediaUploadFileInput.value = '';
-            saveData();
-            applySettings();
+            await saveData();
         });
         
         const logoUploadFileInput = document.getElementById('logo-upload-file');
@@ -1396,8 +1425,7 @@
                 const imageUrl = await uploadFileToFirebase(file, 'personalizacao/logo');
                 if(imageUrl) {
                     data.settings.logoUrl = imageUrl;
-                    saveData();
-                    applySettings();
+                    await saveData();
                 }
             }
         });
@@ -1416,8 +1444,7 @@
                         data.settings.heroImageUrl = mediaUrl;
                         data.settings.heroVideoUrl = null;
                     }
-                    saveData();
-                    applySettings();
+                    await saveData();
                 }
             }
         });
@@ -1455,11 +1482,11 @@
             }, 4000);
         };
 
-        openTestimonialBtn.addEventListener('click', openTestimonialModal);
-        closeTestimonialBtn.addEventListener('click', closeTestimonialModal);
-        testimonialModalOverlay.addEventListener('click', closeTestimonialModal);
+        if(openTestimonialBtn) openTestimonialBtn.addEventListener('click', openTestimonialModal);
+        if(closeTestimonialBtn) closeTestimonialBtn.addEventListener('click', closeTestimonialModal);
+        if(testimonialModalOverlay) testimonialModalOverlay.addEventListener('click', closeTestimonialModal);
 
-        testimonialForm.addEventListener('submit', async (e) => {
+        if(testimonialForm) testimonialForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = testimonialForm.querySelector('button[type="submit"]');
             submitButton.disabled = true;
@@ -1486,7 +1513,7 @@
             };
 
             data.depoimentos.push(newDepoimento);
-            saveData();
+            await saveData();
             renderAdminDepoimentosTable(); 
             closeTestimonialModal();
             showSuccessToast();
@@ -1513,7 +1540,7 @@
         };
 
         uploadMethodRadios.forEach(radio => {
-            radio.addEventListener('change', (e) => {
+            radio.addEventListener('change', async (e) => {
                 const newMethod = e.target.value;
                 if (!isFirebaseConfigured && newMethod === 'firebase') {
                     alert('O Firebase não está configurado. Não é possível usar o método de upload.');
@@ -1522,7 +1549,7 @@
                     return;
                 }
                 data.settings.uploadMethod = newMethod;
-                saveData();
+                await saveData();
                 toggleUploadMethod(newMethod);
             });
         });
@@ -1530,8 +1557,6 @@
 
         // --- Renderização Inicial ---
         loadData();
-        applySettings();
-        renderAll();
     });
     </script>
 </body>
