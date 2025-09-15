@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amor em Notas - Sua História em Música</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase v8 SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <!-- Estilos Personalizados e Paletas de Cores -->
+    <style>
+        :root {
+            --primary-color: #D946EF; /* Fuchsia 500 */
+            --secondary-color: #FDF4FF; /* Fuchsia 50 */
+            --text-color: #1F2937; /* Gray 800 */
+            --heading-color: #111827; /* Gray 900 */
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+        }
+
+        /* Paleta Azul Romântico */
+        .palette-blue {
+            --primary-color: #3B82F6;
+            --secondary-color: #EFF6FF;
+        }
+
+        /* Paleta Vermelho Paixão */
+        .palette-red {
+            --primary-color: #EF4444;
+            --secondary-color: #FEF2F2;
+        }
+
+        /* Paleta Azul Céu */
+        .palette-sky-blue {
+            --primary-color: #0EA5E9; /* Sky 500 */
+            --secondary-color: #E0F2FE; /* Sky 100 */
+        }
+        
+        /* Paleta Verde Esperança */
+        .palette-green {
+            --primary-color: #22C55E; /* Green 500 */
+            --secondary-color: #F0FDF4; /* Green 50 */
+        }
+        
+        /* Paleta Dark Moderno */
+        .palette-dark {
+            --primary-color: #A78BFA; /* Violet 400 */
+            --secondary-color: #1F2937; /* Gray 800 */
+            --text-color: #D1D5DB; /* Gray 300 */
+            --heading-color: #F9FAFB; /* Gray 50 */
+            background-color: #111827;
+        }
+        .palette-dark .bg-white { background-color: #1F2937; }
+        .palette-dark .bg-gray-50 { background-color: #111827; }
+        .palette-dark .shadow-md { box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06); }
+        .palette-dark .border-gray-200 { border-color: #4B5563; }
+        .palette-dark .text-gray-500 { color: #9CA3AF; }
+        .palette-dark .text-gray-900 { color: #F9FAFB; }
+
+
+        .highlight-badge {
+            position: absolute;
+            top: -1rem;
+            right: -1rem;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transform: rotate(15deg);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .btn-primary:disabled {
+            background-color: #9CA3AF;
+            cursor: not-allowed;
+        }
+        .text-primary { color: var(--primary-color); }
+        .border-primary { border-color: var(--primary-color); }
+        .bg-secondary { background-color: var(--secondary-color); }
+
+        /* Estilos do Modal */
+        #admin-modal-overlay, #login-modal-overlay, #testimonial-modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #admin-modal-content, #login-modal-content, #testimonial-modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        /* Estilos do player de áudio */
+        audio::-webkit-media-controls-panel {
+            background-color: var(--secondary-color);
+        }
+         audio::-webkit-media-controls-play-button,
+         audio::-webkit-media-controls-mute-button {
+            color: var(--primary-color);
+            background-color: var(--primary-color);
+            border-radius: 50%;
+        }
+        .palette-dark audio::-webkit-media-controls-play-button,
+        .palette-dark audio::-webkit-media-controls-mute-button {
+             background-color: var(--primary-color);
+        }
+
+        /* Estilo para Toast de Sucesso */
+        #success-toast {
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- =================================================================== -->
+    <!-- ======================= LANDING PAGE (PÚBLICA) ====================== -->
+    <!-- =================================================================== -->
+    <div id="landing-page">
+
+        <!-- Botão Flutuante do WhatsApp -->
+        <a href="https://wa.me/5567992369526?text=Olá%20Amor%20em%20Notas!%20Quero%20uma%20música%20personalizada." target="_blank" class="whatsapp-link fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-transform transform hover:scale-110">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l.216.324-1.256 4.587 4.757-1.249.32.196z"/>
+            </svg>
+        </a>
+
+        <!-- Botão Flutuante de Admin (Engrenagem) -->
+        <button id="admin-gear-button" class="fixed bottom-6 left-6 z-50 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-transform transform hover:scale-110">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734-2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379-1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+        </button>
+
+        <!-- Cabeçalho (Navbar) -->
+        <header class="bg-white/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-40 shadow-sm">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="#" class="text-2xl font-bold text-primary" id="logo">Amor em Notas</a>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#how-it-works" class="text-gray-600 hover:text-primary transition">Como Funciona</a>
+                    <a href="#previews" class="text-gray-600 hover:text-primary transition">Prévias</a>
+                    <a href="#plans" class="text-gray-600 hover:text-primary transition">Planos</a>
+                    <a href="#testimonials" class="text-gray-600 hover:text-primary transition">Depoimentos</a>
+                </nav>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="https://wa.me/5567992369526?text=Olá%20Amor%20em%20Notas!%20Quero%20uma%20música%20personalizada." target="_blank" class="whatsapp-link btn-primary px-4 py-2 rounded-full font-semibold text-sm">Fale Conosco</a>
+                    <a href="https://www.instagram.com/amoremnotasmp3/?utm_source=qr&igsh=MTg2bmR1MzB1dGg1dw%3D%3D" target="_blank" class="text-gray-500 hover:text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919 1.266-.057 1.644-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.058-1.689-.072-4.948-.072zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.441 1.441 1.441 1.441-.645 1.441-1.441-.645-1.44-1.441-1.44z"/></svg>
+                    </a>
+                </div>
+                <button id="mobile-menu-button" class="md:hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            <!-- Menu Mobile -->
+            <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2">
+                <a href="#how-it-works" class="block text-gray-600 hover:text-primary transition">Como Funciona</a>
+                <a href="#previews" class="block text-gray-600 hover:text-primary transition">Prévias</a>
+                <a href="#plans" class="block text-gray-600 hover:text-primary transition">Planos</a>
+                <a href="#testimonials" class="block text-gray-600 hover:text-primary transition">Depoimentos</a>
+                <a href="https://wa.me/5567992369526?text=Olá%20Amor%20em%20Notas!%20Quero%20uma%20música%20personalizada." target="_blank" class="whatsapp-link block mt-4 btn-primary px-4 py-2 rounded-full font-semibold text-sm text-center">Fale Conosco</a>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <main class="pt-24">
+             <div class="container mx-auto px-6">
+                <section id="hero" class="relative bg-cover bg-center text-center shadow-lg rounded-2xl overflow-hidden min-h-[400px] md:min-h-[500px] flex items-center justify-center bg-secondary">
+                    <!-- Video Background -->
+                    <div id="hero-video-wrapper" class="absolute z-0 top-0 left-0 w-full h-full hidden">
+                         <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                             <source id="hero-video-source" src="" type="video/mp4">
+                         </video>
+                    </div>
+                    <!-- Overlay for readability -->
+                    <div id="hero-overlay" class="absolute inset-0 bg-black/40 z-10 hidden"></div>
+                    
+                    <!-- Content -->
+                    <div id="hero-content-wrapper" class="relative z-20 max-w-4xl mx-auto px-6 py-16 md:py-24">
+                        <h1 id="hero-headline" class="text-4xl md:text-6xl font-bold mb-4">Sua história transformada em música</h1>
+                        <p id="hero-subheadline" class="text-lg md:text-xl mb-8">Casamentos, aniversários, homenagens e chá revelação. Personalizamos a canção perfeita para o seu momento.</p>
+                        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-12">
+                            <a href="#previews" class="btn-primary w-full sm:w-auto px-8 py-3 rounded-full font-semibold text-lg">Escutar prévias</a>
+                            <a href="#plans" class="bg-white w-full sm:w-auto px-8 py-3 rounded-full font-semibold text-lg border-2 border-primary text-primary hover:bg-secondary">Ver planos</a>
+                        </div>
+                        <div class="flex justify-center items-center gap-6 md:gap-10 text-gray-500">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                                <span>Pix / QR Code</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                                <span>Cartão até 3x</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>Entrega rápida</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Como Funciona -->
+            <section id="how-it-works" class="py-20 bg-secondary">
+                <div class="container mx-auto px-6 text-center">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--heading-color);">Simples, rápido e emocionante</h2>
+                    <p class="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">Em 4 passos, criamos a trilha sonora do seu momento especial.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Card 1 -->
+                        <div class="bg-white p-8 rounded-xl shadow-md text-left">
+                            <div class="text-4xl font-bold text-primary mb-4">01</div>
+                            <h3 class="text-xl font-semibold mb-2" style="color: var(--heading-color);">Escolha o evento</h3>
+                            <p class="text-gray-600">Selecione para qual ocasião você deseja a música: casamento, aniversário, etc.</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="bg-white p-8 rounded-xl shadow-md text-left">
+                            <div class="text-4xl font-bold text-primary mb-4">02</div>
+                            <h3 class="text-xl font-semibold mb-2" style="color: var(--heading-color);">Escute prévias</h3>
+                            <p class="text-gray-600">Navegue em nossa galeria e ouça exemplos para se inspirar no estilo que mais te agrada.</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="bg-white p-8 rounded-xl shadow-md text-left">
+                            <div class="text-4xl font-bold text-primary mb-4">03</div>
+                            <h3 class="text-xl font-semibold mb-2" style="color: var(--heading-color);">Personalize</h3>
+                            <p class="text-gray-600">Nos conte sua história, nomes, datas e mensagens que farão parte da letra da música.</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="bg-white p-8 rounded-xl shadow-md text-left">
+                            <div class="text-4xl font-bold text-primary mb-4">04</div>
+                            <h3 class="text-xl font-semibold mb-2" style="color: var(--heading-color);">Combine no WhatsApp</h3>
+                            <p class="text-gray-600">Finalize os detalhes e o pagamento de forma segura e prática conversando com a gente.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Galeria de Prévias -->
+            <section id="previews" class="py-20">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-center mb-12" style="color: var(--heading-color);">Inspire-se com nossas criações</h2>
+                    <div id="previews-grid" class="space-y-12">
+                        <!-- Músicas agrupadas por categoria serão inseridas aqui pelo JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Planos -->
+            <section id="plans" class="py-20 bg-secondary">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-center mb-4" style="color: var(--heading-color);">Planos que se encaixam no seu sonho</h2>
+                    <p class="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">Escolha o pacote ideal para eternizar sua história.</p>
+                    <div id="plans-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+                        <!-- Planos serão inseridos aqui pelo JS -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Depoimentos -->
+            <section id="testimonials" class="py-20">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-center mb-12" style="color: var(--heading-color);">Quem ouviu, se emocionou</h2>
+                    <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Depoimentos serão inseridos aqui pelo JS -->
+                    </div>
+                    <div class="text-center mt-12">
+                        <button id="open-testimonial-modal-btn" class="btn-primary px-8 py-3 rounded-full font-semibold text-lg">Deixe seu depoimento</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Rodapé -->
+        <footer class="bg-white border-t border-gray-200">
+            <div class="container mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+                <p class="text-gray-600 text-sm mb-4 md:mb-0">© 2024 Amor em Notas. Todos os direitos reservados.</p>
+                <div class="flex items-center space-x-6">
+                    <a href="https://wa.me/5567992369526?text=Olá%20Amor%20em%20Notas!%20Quero%20uma%20música%20personalizada." target="_blank" class="whatsapp-link text-gray-500 hover:text-primary transition">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l.216.324-1.256 4.587 4.757-1.249.32.196z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/amoremnotasmp3/?utm_source=qr&igsh=MTg2bmR1MzB1dGg1dw%3D%3D" target="_blank" class="text-gray-500 hover:text-primary transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919 1.266-.057 1.644-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.058-1.689-.072-4.948-.072zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.441 1.441 1.441 1.441-.645 1.441-1.441-.645-1.44-1.441-1.44z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- ======================= PAINEL ADMINISTRATIVO ======================= -->
+    <!-- =================================================================== -->
+    <div id="admin-dashboard" class="hidden">
+        <div class="flex h-screen bg-gray-100">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-gray-800 text-white flex-shrink-0 hidden md:block">
+                <div class="p-6 text-2xl font-bold border-b border-gray-700">Amor em Notas</div>
+                <nav class="mt-6">
+                    <a href="#" data-target="admin-metricas" class="admin-nav-link block py-3 px-6 bg-gray-700">Métricas</a>
+                    <a href="#" data-target="admin-musicas" class="admin-nav-link block py-3 px-6 hover:bg-gray-700">Gerenciar Músicas</a>
+                    <a href="#" data-target="admin-planos" class="admin-nav-link block py-3 px-6 hover:bg-gray-700">Gerenciar Planos</a>
+                    <a href="#" data-target="admin-depoimentos" class="admin-nav-link block py-3 px-6 hover:bg-gray-700">Depoimentos</a>
+                    <a href="#" data-target="admin-personalizacao" class="admin-nav-link block py-3 px-6 hover:bg-gray-700">Personalização</a>
+                    <a href="#" id="back-to-site" class="block py-3 px-6 hover:bg-gray-700 mt-8 border-t border-gray-700">Sair / Voltar ao Site</a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
+                <!-- Seção de Métricas -->
+                <div id="admin-metricas" class="admin-panel">
+                    <h1 class="text-3xl font-bold mb-8">Métricas</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-gray-500">Total de Músicas</h3>
+                            <p id="metric-musicas" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-gray-500">Planos Ativos</h3>
+                            <p id="metric-planos" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-gray-500">Depoimentos Publicados</h3>
+                            <p id="metric-depoimentos" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-gray-500">Cliques no WhatsApp</h3>
+                            <p id="metric-whatsapp" class="text-3xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção de Músicas -->
+                <div id="admin-musicas" class="admin-panel hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <h1 class="text-3xl font-bold">Gerenciar Músicas</h1>
+                        <button id="add-musica-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Nova Música</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead><tr class="border-b"><th class="p-4">Título</th><th class="p-4">Evento</th><th class="p-4">Áudio</th><th class="p-4">Ações</th></tr></thead>
+                            <tbody id="admin-musicas-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Seção de Planos -->
+                <div id="admin-planos" class="admin-panel hidden">
+                     <div class="flex justify-between items-center mb-8">
+                        <h1 class="text-3xl font-bold">Gerenciar Planos</h1>
+                        <button id="add-plano-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Novo Plano</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead><tr class="border-b"><th class="p-4">Nome</th><th class="p-4">Preço</th><th class="p-4">Destaque</th><th class="p-4">Ativo</th><th class="p-4">Ações</th></tr></thead>
+                            <tbody id="admin-planos-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Seção de Depoimentos -->
+                 <div id="admin-depoimentos" class="admin-panel hidden">
+                     <div class="flex justify-between items-center mb-8">
+                        <h1 class="text-3xl font-bold">Gerenciar Depoimentos</h1>
+                        <button id="add-depoimento-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">+ Novo Depoimento</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow overflow-x-auto">
+                        <table class="w-full text-left">
+                           <thead><tr class="border-b"><th class="p-4">Cliente</th><th class="p-4">Vídeo</th><th class="p-4">Status</th><th class="p-4">Ações</th></tr></thead>
+                            <tbody id="admin-depoimentos-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Seção de Personalização -->
+                <div id="admin-personalizacao" class="admin-panel hidden">
+                    <h1 class="text-3xl font-bold mb-8">Personalização da Página</h1>
+                    <div class="bg-white p-6 rounded-lg shadow space-y-6">
+                        <div>
+                            <label for="palette-selector" class="block font-medium mb-2">Paleta de Cores</label>
+                            <select id="palette-selector" class="w-full p-2 border rounded">
+                                <option value="default">Rosa Padrão</option>
+                                <option value="palette-blue">Azul Romântico</option>
+                                <option value="palette-red">Vermelho Paixão</option>
+                                <option value="palette-sky-blue">Azul Céu</option>
+                                <option value="palette-green">Verde Esperança</option>
+                                <option value="palette-dark">Dark Moderno</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 border-b pb-2">Gerenciamento de Mídia</h3>
+                            <div class="flex items-center space-x-4">
+                                <span>Método de Envio:</span>
+                                <label class="flex items-center"><input type="radio" name="upload-method" value="url" checked class="mr-2"> Link (URL)</label>
+                                <label class="flex items-center"><input type="radio" name="upload-method" value="firebase" class="mr-2"> Upload (Firebase)</label>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">
+                                Escolha "Link" para colar URLs de mídias já hospedadas (mais rápido). Escolha "Upload" para enviar arquivos do seu computador (requer configuração correta do Firebase).
+                            </p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block font-medium">Logo</label>
+                            <div id="logo-url-group">
+                                <input type="text" id="logo-upload-url" placeholder="Cole a URL da imagem do logo" class="w-full p-2 border rounded-md">
+                            </div>
+                            <div id="logo-file-group" class="hidden">
+                                <input type="file" id="logo-upload-file" accept="image/*" class="w-full p-2 border rounded-md file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <button id="remove-logo-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 text-sm font-semibold">Remover</button>
+                                <img id="logo-preview" class="max-h-16 hidden" alt="Prévia do logo">
+                            </div>
+                        </div>
+                        
+                         <div class="space-y-2">
+                            <label class="block font-medium">Mídia de Fundo (Hero)</label>
+                            <div id="hero-media-url-group">
+                                <input type="text" id="hero-media-upload-url" placeholder="Cole a URL da imagem ou vídeo" class="w-full p-2 border rounded-md">
+                            </div>
+                            <div id="hero-media-file-group" class="hidden">
+                                <input type="file" id="hero-media-upload-file" accept="image/*,video/*" class="w-full p-2 border rounded-md file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+                            </div>
+                            <button id="remove-hero-media-btn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 text-sm font-semibold">Remover Mídia</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modal Genérico para Forms Admin -->
+    <div id="admin-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden p-4">
+        <div id="admin-modal-overlay" class="absolute inset-0 bg-black opacity-50"></div>
+        <div id="admin-modal-content" class="bg-white rounded-lg shadow-xl w-full max-w-lg z-10 transform scale-95 max-h-[90vh] overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="admin-modal-title" class="text-2xl font-bold"></h2>
+                <button id="admin-modal-close" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <div id="admin-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Login -->
+    <div id="login-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
+        <div id="login-modal-overlay" class="absolute inset-0 bg-black opacity-50"></div>
+        <div id="login-modal-content" class="bg-white rounded-lg shadow-xl w-full max-w-sm p-8 z-10 transform scale-95">
+            <h2 class="text-2xl font-bold text-center mb-6">Acesso Administrativo</h2>
+            <form id="login-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="username" class="block mb-1">Usuário</label>
+                        <input type="text" id="username" class="w-full p-2 border rounded" required>
+                    </div>
+                    <div>
+                        <label for="password" class="block mb-1">Senha</label>
+                        <input type="password" id="password" class="w-full p-2 border rounded" required>
+                    </div>
+                </div>
+                <p id="login-error" class="text-red-500 text-sm mt-2 hidden">Usuário ou senha inválidos.</p>
+                <div class="mt-6">
+                    <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded hover:bg-indigo-700 font-semibold">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de Formulário de Depoimento -->
+    <div id="testimonial-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
+        <div id="testimonial-modal-overlay" class="absolute inset-0 bg-black opacity-50"></div>
+        <div id="testimonial-modal-content" class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 z-10 transform scale-95">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Conte sua experiência!</h2>
+                <button id="testimonial-modal-close" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <form id="testimonial-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="testimonial-name" class="block text-sm font-medium text-gray-700 mb-1">Seu nome</label>
+                        <input type="text" id="testimonial-name" name="cliente" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="testimonial-event" class="block text-sm font-medium text-gray-700 mb-1">Evento da música</label>
+                        <input type="text" id="testimonial-event" name="evento" placeholder="Ex: Casamento, Aniversário..." class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="testimonial-text" class="block text-sm font-medium text-gray-700 mb-1">Sua mensagem</label>
+                        <textarea id="testimonial-text" name="texto" rows="4" class="w-full p-2 border border-gray-300 rounded-md" required></textarea>
+                    </div>
+                    <div id="testimonial-video-url-group">
+                        <label for="testimonial-video-url" class="block text-sm font-medium text-gray-700 mb-1">URL do vídeo (opcional)</label>
+                        <input type="text" id="testimonial-video-url" name="video" placeholder="Cole o link do vídeo aqui" class="w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div id="testimonial-video-file-group" class="hidden">
+                        <label for="testimonial-video-file" class="block text-sm font-medium text-gray-700 mb-1">Envie um vídeo (opcional)</label>
+                        <input type="file" id="testimonial-video-file" name="video-file" accept="video/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end">
+                    <button type="submit" class="btn-primary font-semibold px-6 py-2 rounded-lg">Enviar Depoimento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast de Sucesso -->
+    <div id="success-toast" class="fixed bottom-6 right-6 z-[70] bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transform translate-y-4 pointer-events-none">
+        Depoimento enviado com sucesso! Obrigado.
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // ===================================================================
+        // ======================= CONFIGURAÇÃO DO FIREBASE ==================
+        // ===================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCq7Eqm0r2OgM65rnNBnAXTuyFtTcdPCcM",
+            authDomain: "amoremnotasmp3.firebaseapp.com",
+            projectId: "amoremnotasmp3",
+            storageBucket: "amoremnotasmp3.appspot.com",
+            messagingSenderId: "305709650443",
+            appId: "1:305709650443:web:19e9bf57ea7bc0fa2b6d0e",
+            measurementId: "G-DDXP85B8QX"
+        };
+        
+        let auth = null;
+        let storage = null;
+        let isFirebaseConfigured = false;
+
+        // Verifica se a configuração do Firebase foi preenchida
+        if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "SUA_API_KEY" && firebaseConfig.projectId) {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                storage = firebase.storage();
+                isFirebaseConfigured = true;
+                
+                auth.signInAnonymously().catch((error) => {
+                    console.error("Erro na autenticação anônima:", error);
+                    let userMessage = "Não foi possível autenticar com o Firebase. O upload não funcionará.";
+                    if (error.code === 'auth/configuration-not-found') {
+                        userMessage = "Erro de configuração de autenticação! Por favor, vá ao seu painel do Firebase, na seção 'Authentication', clique em 'Começar' e habilite o provedor de login 'Anônimo' na aba 'Sign-in method'.";
+                    } else {
+                        userMessage = `Erro de autenticação: ${error.message}. Verifique o console para detalhes.`;
+                    }
+                    alert(userMessage);
+                });
+            } catch(e) {
+                 console.error("Erro ao inicializar Firebase:", e);
+                 isFirebaseConfigured = false;
+            }
+        } 
+        
+        if (!isFirebaseConfigured) {
+            console.warn("Firebase não inicializado. O modo de upload de arquivos está desabilitado.");
+        }
+
+        // ===================================================================
+        // ======================= LOGIN & AUTH ADMIN ========================
+        // ===================================================================
+        
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin123';
+
+        const loginModal = document.getElementById('login-modal');
+        const loginModalOverlay = document.getElementById('login-modal-overlay');
+        const loginModalContent = document.getElementById('login-modal-content');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+
+        const openLoginModal = () => {
+            loginModal.classList.remove('hidden');
+            setTimeout(() => {
+                loginModalOverlay.classList.remove('opacity-0');
+                loginModalContent.classList.remove('scale-95');
+            }, 10);
+        };
+
+        const closeLoginModal = () => {
+            loginModalOverlay.classList.add('opacity-0');
+            loginModalContent.classList.add('scale-95');
+            setTimeout(() => {
+                loginModal.classList.add('hidden');
+                loginError.classList.add('hidden');
+                loginForm.reset();
+            }, 300);
+        };
+        
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('isLoggedIn', 'true');
+                closeLoginModal();
+                showAdminPanel('admin-metricas');
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        loginModalOverlay.addEventListener('click', closeLoginModal);
+
+
+        // ===================================================================
+        // ======================= BANCO DE DADOS (LOCALSTORAGE) =============
+        // ===================================================================
+        const DB_KEY = 'amorEmNotasDB';
+
+        const defaultData = {
+            musicas: [
+                { id: 1, titulo: 'O Nosso Sim', evento: 'Casamento', img: 'https://placehold.co/400x300/FBCFE8/3D1A2C?text=Casamento', audioUrl: null },
+                { id: 5, titulo: 'Caminho de Luz', evento: 'Casamento', img: 'https://placehold.co/400x300/FBCFE8/3D1A2C?text=Amor', audioUrl: null },
+                { id: 2, titulo: '50 Anos de Ouro', evento: 'Aniversário', img: 'https://placehold.co/400x300/FDE68A/4B320A?text=Aniversário', audioUrl: null },
+                { id: 3, titulo: 'Para a Melhor Mãe', evento: 'Homenagem', img: 'https://placehold.co/400x300/A5B4FC/1E234A?text=Homenagem', audioUrl: null },
+                { id: 4, titulo: 'Menino ou Menina?', evento: 'Chá Revelação', img: 'https://placehold.co/400x300/BFDBFE/1E40AF?text=Chá+Revelação', audioUrl: null },
+            ],
+            planos: [
+                { id: 1, nome: 'Essencial', preco: '249.00', parcelas: 3, destaque: false, ativo: true, beneficios: 'Música com voz e violão\nLetra 100% personalizada\nEntrega em MP3 (7 dias)' },
+                { id: 2, nome: 'Premium', preco: '349.00', parcelas: 3, destaque: true, ativo: true, beneficios: 'Tudo do Essencial +\nBacking vocal e percussão\nRevisão da letra inclusa\nEntrega em 5 dias' },
+                { id: 3, nome: 'Deluxe', preco: '499.00', parcelas: 3, destaque: false, ativo: true, beneficios: 'Tudo do Premium +\nInstrumentos adicionais\nLyric video simples\nEntrega prioritária (3 dias)' },
+            ],
+            depoimentos: [
+                { id: 1, cliente: 'Ana & Leo', evento: 'Casamento', texto: 'Foi emocionante ver nossa história em música! Choramos muito. Obrigado Amor em Notas!', status: 'publicado', videoUrl: null },
+                { id: 2, cliente: 'Família Silva', evento: 'Homenagem', texto: 'A homenagem para minha mãe ficou perfeita. Ela amou a surpresa e todos os convidados elogiaram.', status: 'publicado', videoUrl: null },
+                { id: 3, cliente: 'Juliana B.', evento: 'Aniversário', texto: 'A música de 15 anos da minha filha foi o ponto alto da festa. Uma lembrança para a vida toda!', status: 'pendente', videoUrl: null },
+            ],
+            settings: {
+                palette: 'default',
+                logoUrl: 'https://placehold.co/250x60/FDF4FF/D946EF?text=Amor+%E2%99%A5+%E2%99%AB+Notas',
+                heroImageUrl: null,
+                heroVideoUrl: null,
+                uploadMethod: 'url'
+            }
+        };
+
+        let data;
+
+        const saveData = () => {
+            try {
+                localStorage.setItem(DB_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.error("Não foi possível salvar os dados:", e);
+                alert("Ocorreu um erro ao salvar. O armazenamento do navegador pode estar cheio. Tente remover alguns itens ou limpar o cache.");
+            }
+        };
+
+        const loadData = () => {
+            const savedData = localStorage.getItem(DB_KEY);
+            data = savedData ? JSON.parse(savedData) : defaultData;
+            if (!data.settings) data.settings = defaultData.settings;
+            if (!data.settings.uploadMethod) data.settings.uploadMethod = 'url';
+            if (data.settings.heroVideoUrl === undefined) data.settings.heroVideoUrl = null;
+            data.depoimentos.forEach(d => { if (d.videoUrl === undefined) d.videoUrl = null; });
+        };
+        
+        // ===================================================================
+        // ======================= UPLOAD PARA FIREBASE ======================
+        // ===================================================================
+        
+        const uploadFileToFirebase = (file, folder, onProgress) => {
+            return new Promise((resolve, reject) => {
+                if (!isFirebaseConfigured) {
+                    alert("A configuração do Firebase está faltando ou é inválida! Não é possível fazer upload de arquivos.");
+                    return reject(new Error("Firebase not configured"));
+                }
+                if (!file || file.size === 0) {
+                    return resolve(null);
+                }
+
+                const fileName = `${Date.now()}-${file.name}`;
+                const storageRef = storage.ref(`${folder}/${fileName}`);
+                const uploadTask = storageRef.put(file);
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        if (onProgress) onProgress(progress);
+                    }, 
+                    (error) => {
+                        console.error("Erro no upload para o Firebase:", error);
+                        let userMessage = "Ocorreu um erro ao enviar o arquivo. Verifique o console para mais detalhes.";
+                        if (error.code) {
+                            switch (error.code) {
+                                case 'storage/unauthorized':
+                                    userMessage = "Erro de Permissão! Vá ao seu painel do Firebase > Storage > Regras (Rules) e verifique se as regras permitem a escrita (allow write). A regra correta deve ser 'allow write: if request.auth != null;'.";
+                                    break;
+                                case 'storage/retry-limit-exceeded':
+                                     userMessage = "O envio falhou por tempo esgotado. Verifique sua conexão com a internet e tente novamente com um arquivo menor.";
+                                     break;
+                                case 'storage/bucket-not-found':
+                                    userMessage = "Erro: 'Bucket' de armazenamento não encontrado. Verifique se o valor de 'storageBucket' na sua configuração do Firebase está correto no código.";
+                                    break;
+                                default:
+                                    userMessage = `Erro no upload: ${error.message}`;
+                            }
+                        }
+                        alert(userMessage);
+                        reject(error);
+                    }, 
+                    async () => {
+                        try {
+                            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                            resolve(downloadURL);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    }
+                );
+            });
+        };
+
+        // ===================================================================
+        // ======================= FUNÇÕES DE RENDERIZAÇÃO ===================
+        // ===================================================================
+        
+        const renderPreviewsGrid = () => {
+            const gridContainer = document.getElementById('previews-grid');
+            if (!gridContainer) return;
+
+            const musicasPorEvento = data.musicas.reduce((acc, musica) => {
+                const evento = musica.evento || 'Sem Categoria';
+                if (!acc[evento]) acc[evento] = [];
+                acc[evento].push(musica);
+                return acc;
+            }, {});
+
+            let html = '';
+            const sortedEventos = Object.keys(musicasPorEvento).sort((a, b) => a.localeCompare(b));
+
+            for (const evento of sortedEventos) {
+                const musicasHtml = musicasPorEvento[evento].map(musica => {
+                    const whatsappMessage = `Olá! Gostaria de saber mais sobre a prévia '${musica.titulo}'.`;
+                    const whatsappUrl = `https://wa.me/5567992369526?text=${encodeURIComponent(whatsappMessage)}`;
+                    const audioPlayer = musica.audioUrl 
+                        ? `<div class="p-6 pt-2">
+                               <audio controls controlsList="nodownload" class="w-full h-10">
+                                   <source src="${musica.audioUrl}">
+                                   Seu navegador não suporta áudio.
+                               </audio>
+                           </div>` 
+                        : '';
+
+                    return `
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden group flex flex-col">
+                            <img src="${musica.img}" alt="${musica.titulo}" class="w-full h-48 object-cover group-hover:scale-105 transition-transform">
+                            <div class="p-6 pb-2 flex-grow">
+                                <h3 class="text-xl font-semibold mb-2" style="color: var(--heading-color);">${musica.titulo}</h3>
+                            </div>
+                            ${audioPlayer}
+                            <div class="p-6 pt-0 mt-auto">
+                                 <a href="${whatsappUrl}" target="_blank" class="whatsapp-link btn-primary w-full block text-center py-2 rounded-lg font-semibold">Fale Conosco</a>
+                            </div>
+                        </div>`;
+                }).join('');
+
+                html += `
+                    <div>
+                        <h3 class="text-2xl font-bold mb-6 pb-2 border-b-2 border-primary/50" style="color: var(--heading-color);">${evento}</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            ${musicasHtml}
+                        </div>
+                    </div>
+                `;
+            }
+            gridContainer.innerHTML = html || '<p class="text-center text-gray-500">Nenhuma prévia adicionada ainda.</p>';
+        };
+
+
+        const renderPlansGrid = () => {
+            const grid = document.getElementById('plans-grid');
+            if(!grid) return;
+            grid.innerHTML = data.planos.filter(p => p.ativo).map(plano => {
+                const whatsappMessage = `Olá! Tenho interesse no Plano ${plano.nome}.`;
+                const whatsappUrl = `https://wa.me/5567992369526?text=${encodeURIComponent(whatsappMessage)}`;
+                const destaqueClass = plano.destaque ? 'border-2 border-primary scale-105 relative' : 'border border-gray-200';
+                const destaqueBadge = plano.destaque ? '<div class="highlight-badge">Mais Escolhido</div>' : '';
+
+                return `
+                    <div class="bg-white p-8 rounded-xl shadow-lg ${destaqueClass}">
+                        ${destaqueBadge}
+                        <h3 class="text-2xl font-bold text-center mb-2" style="color: var(--heading-color);">${plano.nome}</h3>
+                        <p class="text-4xl font-bold text-center text-primary mb-2">R$ ${parseFloat(plano.preco).toFixed(2).replace('.',',')}</p>
+                        <p class="text-gray-500 text-center mb-6">ou até ${plano.parcelas}x no cartão</p>
+                        <ul class="space-y-4 mb-8">
+                            ${plano.beneficios.split('\n').map(b => `
+                                <li class="flex items-start">
+                                    <svg class="w-6 h-6 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span>${b}</span>
+                                </li>`).join('')}
+                        </ul>
+                        <a href="${whatsappUrl}" target="_blank" class="whatsapp-link btn-primary w-full block text-center py-3 rounded-lg font-semibold">Fale Conosco</a>
+                    </div>`;
+            }).join('');
+        };
+
+        const renderTestimonialsGrid = () => {
+            const grid = document.getElementById('testimonials-grid');
+            if(!grid) return;
+            grid.innerHTML = data.depoimentos.filter(d => d.status === 'publicado').map(depoimento => {
+                const videoElement = depoimento.videoUrl
+                    ? `<video controls class="w-full h-full object-cover rounded-lg">
+                           <source src="${depoimento.videoUrl}" type="video/mp4">
+                       </video>`
+                    : `<img src="https://placehold.co/400x300/E5E7EB/4B5563?text=Vídeo+Depoimento" class="w-full h-full object-cover rounded-lg">
+                       <div class="absolute inset-0 bg-black/30 rounded-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white/80" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg></div>`;
+                
+                return `
+                <div class="bg-white p-8 rounded-xl shadow-md">
+                    <div class="relative mb-4 bg-gray-200 h-48 rounded-lg">
+                        ${videoElement}
+                    </div>
+                    <p class="text-gray-600 mb-4">"${depoimento.texto}"</p>
+                    <p class="font-bold text-right" style="color: var(--heading-color);">- ${depoimento.cliente}</p>
+                </div>`
+            }).join('');
+        };
+
+        const renderAdminMusicasTable = () => {
+            const tableBody = document.getElementById('admin-musicas-table-body');
+            if(!tableBody) return;
+            tableBody.innerHTML = data.musicas.map(m => `
+                <tr class="border-b">
+                    <td class="p-4">${m.titulo}</td>
+                    <td class="p-4">${m.evento}</td>
+                    <td class="p-4">${m.audioUrl ? 'Sim' : 'Não'}</td>
+                    <td class="p-4"><button class="text-indigo-600 hover:underline edit-btn" data-id="${m.id}" data-type="musica">Editar</button><button class="text-red-600 hover:underline ml-4 delete-btn" data-id="${m.id}" data-type="musica">Remover</button></td>
+                </tr>`).join('');
+        };
+
+        const renderAdminPlanosTable = () => {
+            const tableBody = document.getElementById('admin-planos-table-body');
+            if(!tableBody) return;
+            tableBody.innerHTML = data.planos.map(p => `
+                <tr class="border-b">
+                    <td class="p-4">${p.nome}</td>
+                    <td class="p-4">R$ ${parseFloat(p.preco).toFixed(2).replace('.',',')}</td>
+                    <td class="p-4">${p.destaque ? 'Sim' : 'Não'}</td>
+                    <td class="p-4">${p.ativo ? 'Sim' : 'Não'}</td>
+                    <td class="p-4"><button class="text-indigo-600 hover:underline edit-btn" data-id="${p.id}" data-type="plano">Editar</button><button class="text-red-600 hover:underline ml-4 delete-btn" data-id="${p.id}" data-type="plano">Remover</button></td>
+                </tr>`).join('');
+        };
+        
+        const renderAdminDepoimentosTable = () => {
+            const tableBody = document.getElementById('admin-depoimentos-table-body');
+            if(!tableBody) return;
+            tableBody.innerHTML = data.depoimentos.map(d => `
+                 <tr class="border-b">
+                    <td class="p-4">${d.cliente}</td>
+                    <td class="p-4">${d.videoUrl ? 'Sim' : 'Não'}</td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs rounded-full ${d.status === 'publicado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${d.status}</span></td>
+                    <td class="p-4"><button class="text-indigo-600 hover:underline edit-btn" data-id="${d.id}" data-type="depoimento">Editar</button><button class="text-red-600 hover:underline ml-4 delete-btn" data-id="${d.id}" data-type="depoimento">Remover</button></td>
+                </tr>`).join('');
+        };
+
+        const updateMetrics = () => {
+            const metricMusicas = document.getElementById('metric-musicas');
+            if (!metricMusicas) return;
+            metricMusicas.textContent = data.musicas.length;
+            document.getElementById('metric-planos').textContent = data.planos.filter(p => p.ativo).length;
+            document.getElementById('metric-depoimentos').textContent = data.depoimentos.filter(d => d.status === 'publicado').length;
+        };
+
+        const renderAll = () => {
+            renderPreviewsGrid();
+            renderPlansGrid();
+            renderTestimonialsGrid();
+            renderAdminMusicasTable();
+            renderAdminPlanosTable();
+            renderAdminDepoimentosTable();
+            updateMetrics();
+        };
+
+        // ===================================================================
+        // ======================= LÓGICA DO MODAL =========================
+        // ===================================================================
+        const modal = document.getElementById('admin-modal');
+        const modalOverlay = document.getElementById('admin-modal-overlay');
+        const modalContent = document.getElementById('admin-modal-content');
+        const modalTitle = document.getElementById('admin-modal-title');
+        const modalBody = document.getElementById('admin-modal-body');
+        const modalCloseBtn = document.getElementById('admin-modal-close');
+        let onSaveCallback = null;
+
+        const openModal = (title, formHtml, callback) => {
+            modalTitle.textContent = title;
+            modalBody.innerHTML = formHtml;
+            onSaveCallback = callback;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalOverlay.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        };
+
+        const closeModal = () => {
+            modalOverlay.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modalTitle.textContent = '';
+                modalBody.innerHTML = '';
+                onSaveCallback = null;
+            }, 300);
+        };
+        
+        modalCloseBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+        modalBody.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (onSaveCallback) {
+                const form = e.target;
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalButtonText = submitButton.innerHTML;
+                
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Salvando...';
+
+                try {
+                    const formData = new FormData(form);
+                    await onSaveCallback(formData, submitButton); // Passa o botão para o callback
+                } catch (error) {
+                    console.error("Erro no callback de salvar:", error);
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                    closeModal();
+                }
+            }
+        });
+
+        // ===================================================================
+        // =================== LÓGICA DE CRUD E EVENTOS ======================
+        // ===================================================================
+
+        // --- MÚSICAS ---
+        document.getElementById('add-musica-btn').addEventListener('click', () => {
+            const useFirebase = data.settings.uploadMethod === 'firebase';
+            const imgInput = useFirebase
+                ? '<div><label class="block">Imagem da Música</label><input type="file" name="img-file" accept="image/*" class="w-full p-2 border rounded file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100" required></div>'
+                : '<div><label class="block">URL da Imagem</label><input type="text" name="img-url" placeholder="https://exemplo.com/imagem.jpg" class="w-full p-2 border rounded" required></div>';
+            
+            const audioInput = useFirebase
+                ? '<div><label class="block">Arquivo de Áudio (MP3, WAV)</label><input type="file" name="audio-file" accept="audio/*" class="w-full p-2 border rounded file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100"></div>'
+                : '<div><label class="block">URL do Áudio (MP3, WAV)</label><input type="text" name="audio-url" placeholder="https://exemplo.com/audio.mp3" class="w-full p-2 border rounded"></div>';
+
+            const formHtml = `
+                <form id="modal-form">
+                    <div class="space-y-4">
+                        <div><label class="block">Título</label><input type="text" name="titulo" class="w-full p-2 border rounded" required></div>
+                        <div><label class="block">Evento</label><input type="text" name="evento" class="w-full p-2 border rounded" required></div>
+                        ${imgInput}
+                        ${audioInput}
+                    </div>
+                    <div class="mt-6 flex justify-end"><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Salvar</button></div>
+                </form>`;
+
+            openModal('Nova Música', formHtml, async (formData, submitButton) => {
+                let imgUrl, audioUrl;
+
+                if (useFirebase) {
+                    const imgFile = formData.get('img-file');
+                    const audioFile = formData.get('audio-file');
+                    
+                    const onImgProgress = (p) => { submitButton.innerHTML = `Enviando Imagem (${Math.round(p)}%)...`; };
+                    const onAudioProgress = (p) => { submitButton.innerHTML = `Enviando Áudio (${Math.round(p)}%)...`; };
+
+                    imgUrl = await uploadFileToFirebase(imgFile, 'musicas/imagens', onImgProgress);
+                    audioUrl = await uploadFileToFirebase(audioFile, 'musicas/audios', onAudioProgress);
+                    
+                    if (!imgUrl) {
+                        alert("Falha no upload da imagem. A música não foi criada.");
+                        return;
+                    }
+                } else {
+                    imgUrl = formData.get('img-url');
+                    audioUrl = formData.get('audio-url') || null;
+                }
+
+                const newMusica = {
+                    id: Date.now(),
+                    titulo: formData.get('titulo'),
+                    evento: formData.get('evento'),
+                    img: imgUrl,
+                    audioUrl: audioUrl
+                };
+                data.musicas.push(newMusica);
+                saveData();
+                renderAll();
+            });
+        });
+
+        // --- PLANOS ---
+        document.getElementById('add-plano-btn').addEventListener('click', () => {
+            const formHtml = `
+                <form id="modal-form">
+                    <div class="space-y-4">
+                        <div><label class="block">Nome</label><input type="text" name="nome" class="w-full p-2 border rounded" required></div>
+                        <div><label class="block">Preço (ex: 249.00)</label><input type="number" step="0.01" name="preco" class="w-full p-2 border rounded" required></div>
+                        <div><label class="block">Benefícios (1 por linha)</label><textarea name="beneficios" rows="4" class="w-full p-2 border rounded" required></textarea></div>
+                        <div class="flex items-center"><input type="checkbox" name="destaque" id="destaque" class="mr-2"><label for="destaque">É destaque?</label></div>
+                        <div class="flex items-center"><input type="checkbox" name="ativo" id="ativo" checked class="mr-2"><label for="ativo">Está ativo?</label></div>
+                    </div>
+                    <div class="mt-6 flex justify-end"><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Salvar</button></div>
+                </form>`;
+            openModal('Novo Plano', formHtml, async (formData) => {
+                const newPlano = {
+                    id: Date.now(),
+                    nome: formData.get('nome'),
+                    preco: formData.get('preco'),
+                    parcelas: 3,
+                    destaque: formData.get('destaque') === 'on',
+                    ativo: formData.get('ativo') === 'on',
+                    beneficios: formData.get('beneficios'),
+                };
+                data.planos.push(newPlano);
+                saveData();
+                renderAll();
+            });
+        });
+        
+        // --- DEPOIMENTOS (ADMIN) ---
+        document.getElementById('add-depoimento-btn').addEventListener('click', () => {
+             const useFirebase = data.settings.uploadMethod === 'firebase';
+             const videoInput = useFirebase
+                ? '<div><label class="block">Arquivo de Vídeo</label><input type="file" name="video-file" accept="video/*" class="w-full p-2 border rounded"></div>'
+                : '<div><label class="block">URL do Vídeo</label><input type="text" name="video-url" class="w-full p-2 border rounded"></div>';
+            
+             const formHtml = `
+                <form id="modal-form">
+                    <div class="space-y-4">
+                        <div><label class="block">Cliente</label><input type="text" name="cliente" class="w-full p-2 border rounded" required></div>
+                        <div><label class="block">Evento</label><input type="text" name="evento" class="w-full p-2 border rounded" required></div>
+                        <div><label class="block">Texto</label><textarea name="texto" rows="4" class="w-full p-2 border rounded" required></textarea></div>
+                        <div><label class="block">Status</label><select name="status" class="w-full p-2 border rounded"><option value="publicado">Publicado</option><option value="pendente">Pendente</option></select></div>
+                        ${videoInput}
+                    </div>
+                    <div class="mt-6 flex justify-end"><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Salvar</button></div>
+                </form>`;
+            openModal('Novo Depoimento', formHtml, async (formData, submitButton) => {
+                let videoUrl;
+                if (useFirebase) {
+                    const videoFile = formData.get('video-file');
+                    const onVideoProgress = (p) => { submitButton.innerHTML = `Enviando Vídeo (${Math.round(p)}%)...`; };
+                    videoUrl = await uploadFileToFirebase(videoFile, 'depoimentos/videos', onVideoProgress);
+                } else {
+                    videoUrl = formData.get('video-url') || null;
+                }
+
+                const newDepoimento = {
+                    id: Date.now(),
+                    cliente: formData.get('cliente'),
+                    evento: formData.get('evento'),
+                    texto: formData.get('texto'),
+                    status: formData.get('status'),
+                    videoUrl: videoUrl
+                };
+                data.depoimentos.push(newDepoimento);
+                saveData();
+                renderAll();
+            });
+        });
+
+        // --- LÓGICA DE EDIÇÃO E REMOÇÃO (DELEGAÇÃO DE EVENTOS) ---
+        document.getElementById('admin-dashboard').addEventListener('click', (e) => {
+            const target = e.target;
+            const id = parseInt(target.dataset.id);
+            const type = target.dataset.type;
+
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('Tem certeza que deseja remover este item?')) {
+                    data[type + 's'] = data[type + 's'].filter(item => item.id !== id);
+                    saveData();
+                    renderAll();
+                }
+            }
+            
+            if (target.classList.contains('edit-btn')) {
+                if (type === 'musica') {
+                    const item = data.musicas.find(m => m.id === id);
+                    const useFirebase = data.settings.uploadMethod === 'firebase';
+
+                    const imgInput = useFirebase
+                        ? '<div><label class="block">Imagem (envie para alterar)</label><input type="file" name="img-file" accept="image/*"></div>'
+                        : '<div><label class="block">URL da Imagem</label><input type="text" name="img-url" value="'+(item.img || '')+'"></div>';
+
+                    const audioInput = useFirebase
+                        ? '<div><label class="block">Áudio (envie para alterar)</label><input type="file" name="audio-file" accept="audio/*"></div>'
+                        : '<div><label class="block">URL do Áudio</label><input type="text" name="audio-url" value="'+(item.audioUrl || '')+'"></div>';
+                    
+                    const formHtml = `
+                        <form id="modal-form" class="space-y-4">
+                            <div><label class="block">Título</label><input type="text" name="titulo" value="${item.titulo}" class="w-full p-2 border rounded" required></div>
+                            <div><label class="block">Evento</label><input type="text" name="evento" value="${item.evento}" class="w-full p-2 border rounded" required></div>
+                            ${imgInput.replaceAll('>', ' class="w-full p-2 border rounded">')}
+                            ${audioInput.replaceAll('>', ' class="w-full p-2 border rounded">')}
+                            <p class="text-sm text-gray-500">${useFirebase ? 'Deixe os campos de arquivo vazios para manter os atuais.' : ''}</p>
+                            <div class="mt-6 flex justify-end"><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Salvar Alterações</button></div>
+                        </form>`;
+                    openModal('Editar Música', formHtml, async (formData, submitButton) => {
+                        item.titulo = formData.get('titulo');
+                        item.evento = formData.get('evento');
+
+                        if (useFirebase) {
+                            const imgFile = formData.get('img-file');
+                            const audioFile = formData.get('audio-file');
+                            const onImgProgress = (p) => { submitButton.innerHTML = `Enviando Imagem (${Math.round(p)}%)...`; };
+                            const onAudioProgress = (p) => { submitButton.innerHTML = `Enviando Áudio (${Math.round(p)}%)...`; };
+
+                            if (imgFile && imgFile.size > 0) {
+                                const newImgUrl = await uploadFileToFirebase(imgFile, 'musicas/imagens', onImgProgress);
+                                if(newImgUrl) item.img = newImgUrl;
+                            }
+                             if (audioFile && audioFile.size > 0) {
+                                const newAudioUrl = await uploadFileToFirebase(audioFile, 'musicas/audios', onAudioProgress);
+                                if(newAudioUrl) item.audioUrl = newAudioUrl;
+                            }
+                        } else {
+                            item.img = formData.get('img-url');
+                            item.audioUrl = formData.get('audio-url') || null;
+                        }
+                        
+                        saveData();
+                        renderAll();
+                    });
+                } else if (type === 'plano') {
+                    const item = data.planos.find(p => p.id === id);
+                    const formHtml = `
+                        <form id="modal-form">
+                            <div class="space-y-4">
+                                <div><label class="block">Nome</label><input type="text" name="nome" value="${item.nome}" class="w-full p-2 border rounded" required></div>
+                                <div><label class="block">Preço</label><input type="number" step="0.01" name="preco" value="${item.preco}" class="w-full p-2 border rounded" required></div>
+                                <div><label class="block">Benefícios (1 por linha)</label><textarea name="beneficios" rows="4" class="w-full p-2 border rounded" required>${item.beneficios}</textarea></div>
+                                <div class="flex items-center"><input type="checkbox" name="destaque" id="destaque" ${item.destaque ? 'checked' : ''} class="mr-2"><label for="destaque">É destaque?</label></div>
+                                <div class="flex items-center"><input type="checkbox" name="ativo" id="ativo" ${item.ativo ? 'checked' : ''} class="mr-2"><label for="ativo">Está ativo?</label></div>
+                            </div>
+                            <div class="mt-6 flex justify-end"><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Salvar Alterações</button></div>
+                        </form>`;
+                    openModal('Editar Plano', formHtml, async (formData) => {
+                        item.nome = formData.get('nome');
+                        item.preco = formData.get('preco');
+                        item.beneficios = formData.get('beneficios');
+                        item.destaque = formData.get('destaque') === 'on';
+                        item.ativo = formData.get('ativo') === 'on';
+                        saveData();
+                        renderAll();
+                    });
+                } else if (type === 'depoimento') {
+                    const item = data.depoimentos.find(d => d.id === id);
+                     const useFirebase = data.settings.uploadMethod === 'firebase';
+                    const videoPlayer = item.videoUrl ? `<div class="mt-4"><label class="block mb-2">Vídeo Enviado:</label><video controls class="w-full rounded" src="${item.videoUrl}"></video></div>` : '';
+                    const videoInput = useFirebase
+                        ? '<div><label class="block">Arquivo de Vídeo (envie para alterar)</label><input type="file" name="video-file" accept="video/*" class="w-full p-2 border rounded"></div>'
+                        : '<div><label class="block">URL do Vídeo</label><input type="text" name="video-url" value="'+(item.videoUrl || '')+'" class="w-full p-2 border rounded"></div>';
+                    
+                    const formHtml = `
+                        <form id="modal-form">
+                            <div class="space-y-4">
+                                <div><label class="block">Cliente</label><input type="text" name="cliente" value="${item.cliente}" class="w-full p-2 border rounded" required></div>
+                                <div><label class="block">Evento</label><input type="text" name="evento" value="${item.evento}" class="w-full p-2 border rounded" required></div>
+                                <div><label class="block">Texto</label><textarea name="texto" rows="4" class="w-full p-2 border rounded" required>${item.texto}</textarea></div>
+                                <div><label class="block">Status</label><select name="status" class="w-full p-2 border rounded"><option value="publicado" ${item.status === 'publicado' ? 'selected' : ''}>Publicado</option><option value="pendente" ${item.status === 'pendente' ? 'selected' : ''}>Pendente</option></select></div>
+                                ${videoInput}
+                                ${videoPlayer}
+                            </div>
+                            <div class="mt-6 flex justify-end"><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Salvar Alterações</button></div>
+                        </form>`;
+                    openModal('Editar Depoimento', formHtml, async (formData, submitButton) => {
+                        item.cliente = formData.get('cliente');
+                        item.evento = formData.get('evento');
+                        item.texto = formData.get('texto');
+                        item.status = formData.get('status');
+                        
+                        if (useFirebase) {
+                            const videoFile = formData.get('video-file');
+                             if(videoFile && videoFile.size > 0) {
+                                 const onVideoProgress = (p) => { submitButton.innerHTML = `Enviando Vídeo (${Math.round(p)}%)...`; };
+                                 const newVideoUrl = await uploadFileToFirebase(videoFile, 'depoimentos/videos', onVideoProgress);
+                                 if(newVideoUrl) item.videoUrl = newVideoUrl;
+                            }
+                        } else {
+                            item.videoUrl = formData.get('video-url') || null;
+                        }
+                        
+                        saveData();
+                        renderAll();
+                    });
+                }
+            }
+        });
+
+        // ===================================================================
+        // ======================= LÓGICA DE NAVEGAÇÃO =====================
+        // ===================================================================
+        const landingPage = document.getElementById('landing-page');
+        const adminDashboard = document.getElementById('admin-dashboard');
+        const adminNavLinks = document.querySelectorAll('.admin-nav-link');
+        const adminPanels = document.querySelectorAll('.admin-panel');
+        const adminGearButton = document.getElementById('admin-gear-button');
+        const whatsappFloatingButton = document.querySelector('.whatsapp-link.fixed');
+
+        const showAdminPanel = (targetId) => {
+            landingPage.classList.add('hidden');
+            adminDashboard.classList.remove('hidden');
+            if(adminGearButton) adminGearButton.classList.add('hidden');
+            if(whatsappFloatingButton) whatsappFloatingButton.classList.add('hidden');
+            
+            adminNavLinks.forEach(link => {
+                link.classList.remove('bg-gray-700');
+                if (link.dataset.target === targetId) link.classList.add('bg-gray-700');
+            });
+
+            adminPanels.forEach(panel => {
+                panel.classList.add('hidden');
+                if (panel.id === targetId) panel.classList.remove('hidden');
+            });
+        };
+
+        const showLandingPage = () => {
+            sessionStorage.removeItem('isLoggedIn'); // Efetua o "logout"
+            landingPage.classList.remove('hidden');
+            adminDashboard.classList.add('hidden');
+            if(adminGearButton) adminGearButton.classList.remove('hidden');
+            if(whatsappFloatingButton) whatsappFloatingButton.classList.remove('hidden');
+            window.location.hash = '';
+        };
+        
+        adminGearButton.addEventListener('click', () => {
+             if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                 showAdminPanel('admin-metricas');
+             } else {
+                 openLoginModal();
+             }
+        });
+
+        document.getElementById('back-to-site').addEventListener('click', (e) => { e.preventDefault(); showLandingPage(); });
+        adminNavLinks.forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(link.dataset.target); }); });
+
+
+        // ===================================================================
+        // ================== INICIALIZAÇÃO E PERSONALIZAÇÃO ================
+        // ===================================================================
+        const applySettings = () => {
+            document.body.className = "bg-gray-50 " + (data.settings.palette || 'default');
+            document.getElementById('palette-selector').value = data.settings.palette || 'default';
+            const logoPreview = document.getElementById('logo-preview');
+            const logoElement = document.getElementById('logo');
+
+            if (data.settings.logoUrl) {
+                logoPreview.src = data.settings.logoUrl;
+                logoPreview.classList.remove('hidden');
+                logoElement.innerHTML = `<img src="${data.settings.logoUrl}" class="max-h-10" alt="Logo Amor em Notas">`;
+                logoElement.className = '';
+            } else {
+                logoPreview.classList.add('hidden');
+                logoPreview.src = '';
+                logoElement.textContent = 'Amor em Notas';
+                logoElement.className = 'text-2xl font-bold text-primary';
+            }
+
+            const heroSection = document.getElementById('hero');
+            const heroVideoWrapper = document.getElementById('hero-video-wrapper');
+            const heroVideoSource = document.getElementById('hero-video-source');
+            const heroOverlay = document.getElementById('hero-overlay');
+            const heroHeadline = document.getElementById('hero-headline');
+            const heroSubheadline = document.getElementById('hero-subheadline');
+            const heroButtons = heroSection.querySelectorAll('a');
+            const heroTrustBadges = heroSection.querySelectorAll('.gap-2 > span');
+
+            // Reset styles
+            heroVideoWrapper.classList.add('hidden');
+            heroOverlay.classList.add('hidden');
+            heroSection.style.backgroundImage = 'none';
+            heroSection.style.backgroundColor = 'var(--secondary-color)';
+            heroHeadline.style.color = 'var(--heading-color)';
+            heroSubheadline.style.color = 'var(--text-color)';
+            heroSubheadline.parentElement.classList.remove('text-white');
+             heroTrustBadges.forEach(el => el.parentElement.classList.remove('text-white/80'));
+
+
+            if (data.settings.heroVideoUrl) {
+                heroVideoSource.setAttribute('src', data.settings.heroVideoUrl);
+                heroVideoWrapper.querySelector('video').load();
+                heroVideoWrapper.classList.remove('hidden');
+                heroOverlay.classList.remove('hidden');
+                heroSection.style.backgroundColor = '#000'; // Black fallback for video
+                heroHeadline.style.color = 'white';
+                heroSubheadline.style.color = 'rgba(255, 255, 255, 0.9)';
+                heroTrustBadges.forEach(el => el.parentElement.classList.add('text-white/80'));
+
+            } else if (data.settings.heroImageUrl) {
+                heroSection.style.backgroundImage = `url('${data.settings.heroImageUrl}')`;
+                heroOverlay.classList.remove('hidden');
+                heroSection.style.backgroundColor = '';
+                heroHeadline.style.color = 'white';
+                heroSubheadline.style.color = 'rgba(255, 255, 255, 0.9)';
+                heroTrustBadges.forEach(el => el.parentElement.classList.add('text-white/80'));
+            }
+            
+            // Aplica o método de upload selecionado
+            const uploadMethod = data.settings.uploadMethod;
+            document.querySelector(`input[name="upload-method"][value="${uploadMethod}"]`).checked = true;
+            toggleUploadMethod(uploadMethod);
+        };
+
+        let whatsappClicks = 0;
+        document.addEventListener('click', e => {
+            if (e.target.closest('.whatsapp-link')) {
+                whatsappClicks++;
+                document.getElementById('metric-whatsapp').textContent = whatsappClicks;
+            }
+        });
+
+        const paletteSelector = document.getElementById('palette-selector');
+        paletteSelector.addEventListener('change', (e) => { 
+            data.settings.palette = e.target.value;
+            saveData();
+            applySettings();
+        });
+
+        const logoUploadUrlInput = document.getElementById('logo-upload-url');
+        const removeLogoBtn = document.getElementById('remove-logo-btn');
+        logoUploadUrlInput.addEventListener('input', (e) => {
+            const imageUrl = e.target.value;
+            data.settings.logoUrl = imageUrl;
+            saveData();
+            applySettings();
+        });
+        removeLogoBtn.addEventListener('click', () => {
+            data.settings.logoUrl = null;
+            logoUploadUrlInput.value = '';
+            document.getElementById('logo-upload-file').value = '';
+            saveData();
+            applySettings();
+        });
+
+        const heroMediaUploadUrlInput = document.getElementById('hero-media-upload-url');
+        const removeHeroMediaBtn = document.getElementById('remove-hero-media-btn');
+        const heroMediaUploadFileInput = document.getElementById('hero-media-upload-file');
+        const isVideoUrl = (url = '') => {
+            const videoExtensions = ['.mp4', '.webm', '.ogg'];
+            return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+        };
+
+        heroMediaUploadUrlInput.addEventListener('input', e => {
+            const mediaUrl = e.target.value;
+            if (isVideoUrl(mediaUrl)) {
+                data.settings.heroVideoUrl = mediaUrl;
+                data.settings.heroImageUrl = null;
+            } else {
+                data.settings.heroImageUrl = mediaUrl;
+                data.settings.heroVideoUrl = null;
+            }
+            saveData();
+            applySettings();
+        });
+
+        removeHeroMediaBtn.addEventListener('click', () => {
+            data.settings.heroImageUrl = null;
+            data.settings.heroVideoUrl = null;
+            heroMediaUploadUrlInput.value = '';
+            heroMediaUploadFileInput.value = '';
+            saveData();
+            applySettings();
+        });
+        
+        const logoUploadFileInput = document.getElementById('logo-upload-file');
+        logoUploadFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const imageUrl = await uploadFileToFirebase(file, 'personalizacao/logo');
+                if(imageUrl) {
+                    data.settings.logoUrl = imageUrl;
+                    saveData();
+                    applySettings();
+                }
+            }
+        });
+
+        heroMediaUploadFileInput.addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if(file) {
+                const isVideo = file.type.startsWith('video/');
+                const folder = isVideo ? 'personalizacao/hero/videos' : 'personalizacao/hero/images';
+                const mediaUrl = await uploadFileToFirebase(file, folder);
+                if(mediaUrl) {
+                    if (isVideo) {
+                        data.settings.heroVideoUrl = mediaUrl;
+                        data.settings.heroImageUrl = null;
+                    } else {
+                        data.settings.heroImageUrl = mediaUrl;
+                        data.settings.heroVideoUrl = null;
+                    }
+                    saveData();
+                    applySettings();
+                }
+            }
+        });
+        
+        // --- LÓGICA DO FORMULÁRIO DE DEPOIMENTO DO CLIENTE ---
+        const testimonialModal = document.getElementById('testimonial-modal');
+        const testimonialModalOverlay = document.getElementById('testimonial-modal-overlay');
+        const testimonialModalContent = document.getElementById('testimonial-modal-content');
+        const openTestimonialBtn = document.getElementById('open-testimonial-modal-btn');
+        const closeTestimonialBtn = document.getElementById('testimonial-modal-close');
+        const testimonialForm = document.getElementById('testimonial-form');
+        const successToast = document.getElementById('success-toast');
+
+        const openTestimonialModal = () => {
+            testimonialModal.classList.remove('hidden');
+            setTimeout(() => {
+                testimonialModalOverlay.classList.remove('opacity-0');
+                testimonialModalContent.classList.remove('scale-95');
+            }, 10);
+        };
+
+        const closeTestimonialModal = () => {
+            testimonialModalOverlay.classList.add('opacity-0');
+            testimonialModalContent.classList.add('scale-95');
+            setTimeout(() => {
+                testimonialModal.classList.add('hidden');
+                testimonialForm.reset();
+            }, 300);
+        };
+        
+        const showSuccessToast = () => {
+            successToast.classList.remove('opacity-0', 'translate-y-4');
+            setTimeout(() => {
+                successToast.classList.add('opacity-0', 'translate-y-4');
+            }, 4000);
+        };
+
+        openTestimonialBtn.addEventListener('click', openTestimonialModal);
+        closeTestimonialBtn.addEventListener('click', closeTestimonialModal);
+        testimonialModalOverlay.addEventListener('click', closeTestimonialModal);
+
+        testimonialForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = testimonialForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            
+            const formData = new FormData(testimonialForm);
+            let videoUrl;
+
+            if (data.settings.uploadMethod === 'firebase') {
+                const videoFile = formData.get('video-file');
+                const onVideoProgress = (p) => { submitButton.innerHTML = `Enviando Vídeo (${Math.round(p)}%)...`; };
+                videoUrl = await uploadFileToFirebase(videoFile, 'depoimentos/videos', onVideoProgress);
+            } else {
+                videoUrl = formData.get('video-url') || null;
+            }
+            
+            const newDepoimento = {
+                id: Date.now(),
+                cliente: formData.get('cliente'),
+                evento: formData.get('evento'),
+                texto: formData.get('texto'),
+                status: 'pendente',
+                videoUrl: videoUrl
+            };
+
+            data.depoimentos.push(newDepoimento);
+            saveData();
+            renderAdminDepoimentosTable(); 
+            closeTestimonialModal();
+            showSuccessToast();
+
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enviar Depoimento';
+        });
+
+        // --- LÓGICA DO SELETOR DE MÉTODO DE UPLOAD ---
+        const uploadMethodRadios = document.querySelectorAll('input[name="upload-method"]');
+        
+        const toggleUploadMethod = (method) => {
+            const useFirebase = method === 'firebase';
+
+            // Personalização
+            document.getElementById('logo-url-group').classList.toggle('hidden', useFirebase);
+            document.getElementById('logo-file-group').classList.toggle('hidden', !useFirebase);
+            document.getElementById('hero-media-url-group').classList.toggle('hidden', useFirebase);
+            document.getElementById('hero-media-file-group').classList.toggle('hidden', !useFirebase);
+
+            // Depoimento do cliente
+            document.getElementById('testimonial-video-url-group').classList.toggle('hidden', useFirebase);
+            document.getElementById('testimonial-video-file-group').classList.toggle('hidden', !useFirebase);
+        };
+
+        uploadMethodRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const newMethod = e.target.value;
+                if (!isFirebaseConfigured && newMethod === 'firebase') {
+                    alert('O Firebase não está configurado. Não é possível usar o método de upload.');
+                    e.target.checked = false;
+                    document.querySelector('input[name="upload-method"][value="url"]').checked = true;
+                    return;
+                }
+                data.settings.uploadMethod = newMethod;
+                saveData();
+                toggleUploadMethod(newMethod);
+            });
+        });
+
+
+        // --- Renderização Inicial ---
+        loadData();
+        applySettings();
+        renderAll();
+    });
+    </script>
+</body>
+</html>
+
